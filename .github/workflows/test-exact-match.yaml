@@ -1,9 +1,7 @@
 name: test-exact-match
 
 on:
-  workflow_run:
-    workflows: [build]
-    types: [completed]
+  push:
     branches: [main]
   pull_request:
     branches: [main]
@@ -13,7 +11,6 @@ jobs:
   # e.g. key = "test-exact-Linux-12345-decoy" which shares the prefix
   # "test-exact-Linux-12345" with the key we'll try to restore later.
   test-save-decoy:
-    if: github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success'
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -21,7 +18,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - name: Build
+        shell: bash
+        run: npm install -g yarn && yarn install --pure-lockfile && yarn build
       - name: Generate decoy cache files
         shell: bash
         run: src/create-cache-files.sh ${{ runner.os }} test-cache
@@ -47,7 +47,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - name: Build
+        shell: bash
+        run: npm install -g yarn && yarn install --pure-lockfile && yarn build
       - name: Restore cache (should miss)
         id: restore
         uses: ./

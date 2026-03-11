@@ -1,16 +1,13 @@
 name: test-env
 
 on:
-  workflow_run:
-    workflows: [build]
-    types: [completed]
+  push:
     branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
   test-save:
-    if: github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success'
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
@@ -19,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Build
+        shell: bash
+        run: npm install -g yarn && yarn install --pure-lockfile && yarn build
       - name: Generate files in working directory
         shell: bash
         run: src/create-cache-files.sh ${{ runner.os }} test-cache
@@ -51,6 +51,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Build
+        shell: bash
+        run: npm install -g yarn && yarn install --pure-lockfile && yarn build
       - name: Restore cache
         id: restore
         uses: ./
